@@ -37,7 +37,7 @@ docker run --rm \
     -e KVROCKS_URL=redis://host.docker.internal:6666 \
     -e KVROCKS_DIR=/kvrocks_data \
     -v ./kvrocks_data:/kvrocks_data:ro \
-    ghcr.io/sneakersapi/kvrocks-backup --prefix "my-backups" cron "0 * * * *" # hourly backup
+    ghcr.io/sneakersapi/kvrocks-backup --prefix "my-backups" schedule "0 * * * *" # hourly backup
 ```
 
 Optional args:
