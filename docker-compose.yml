@@ -1,0 +1,9 @@
+services:
+  kvrocks:
+    image: apache/kvrocks:2.14.0
+    ports:
+      - 6666:6666
+    volumes:
+      - ./kvrocks_data:/kvrocks_data
+    command: --dir /kvrocks_data
+    
