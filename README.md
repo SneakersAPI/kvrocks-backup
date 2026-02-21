@@ -16,6 +16,9 @@ docker run --rm \
     ghcr.io/sneakersapi/kvrocks-backup --prefix "my-backups" backup
 ```
 
+Optional args:
+- `--delete`: delete the `backup` folder after upload. This requires `rw` permission on the volume.
+
 > [!TIP]
 > We recommend mounting the volume using `ro` flag on Docker. 
 > This might avoid unwanted restore from being started on a production instance.
@@ -36,6 +39,10 @@ docker run --rm \
     -v ./kvrocks_data:/kvrocks_data:ro \
     ghcr.io/sneakersapi/kvrocks-backup --prefix "my-backups" cron "0 * * * *" # hourly backup
 ```
+
+Optional args:
+- `--delete`: delete the `backup` folder after upload. This requires `rw` permission on the volume.
+- `--replace`: always save into the same prefix, replacing the previous uploaded backup.
 
 ## Restore a backup
 

@@ -16,7 +16,7 @@ func main() {
 	cmd := &cli.Command{
 		Name:    "kvrocks-backup",
 		Usage:   "A tool for saving and restoring Kvrocks instances",
-		Version: "v1.0.0",
+		Version: "v1.0.1",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "kvrocks-url",

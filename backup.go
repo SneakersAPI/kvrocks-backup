@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"path"
 	"time"
 
@@ -16,6 +17,12 @@ import (
 var BackupCmd = &cli.Command{
 	Name:  "backup",
 	Usage: "Backup Kvrocks instance now",
+	Flags: []cli.Flag{
+		&cli.BoolFlag{
+			Name:  "delete",
+			Usage: "Delete the backup folder after upload",
+		},
+	},
 	Action: func(ctx context.Context, c *cli.Command) error {
 		s3client := ctx.Value("s3client").(*s3.Client)
 		client := ctx.Value("redis").(*redis.Client)
@@ -26,13 +33,14 @@ var BackupCmd = &cli.Command{
 			c.String("bucket"),
 			c.String("kvrocks-dir"),
 			c.String("prefix"),
+			c.Bool("delete"),
 		)
 	},
 }
 
 // Backup runs `BGSAVE` on the Redis instance, polls `LASTSAVE` until
 // the save is created then upload the backup folder to S3.
-func Backup(s3client *s3.Client, rClient *redis.Client, bucket, dir, prefix string) error {
+func Backup(s3client *s3.Client, rClient *redis.Client, bucket, dir, prefix string, delete bool) error {
 	ctx := context.Background()
 	start := time.Now()
 
@@ -78,6 +86,14 @@ func Backup(s3client *s3.Client, rClient *redis.Client, bucket, dir, prefix stri
 	log.Println("Upload finished in", time.Since(start).String())
 	log.Println("Files uploaded:", output.ObjectsUploaded)
 	log.Println("Files errors:", output.ObjectsFailed)
+
+	if delete {
+		if err := os.RemoveAll(path.Join(dir, "backup")); err != nil {
+			return fmt.Errorf("could not delete backup folder: %w", err)
+		}
+
+		log.Println("Delete backup folder")
+	}
 
 	return nil
 }

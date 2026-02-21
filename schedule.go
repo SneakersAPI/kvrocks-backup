@@ -27,6 +27,10 @@ var ScheduleCmd = &cli.Command{
 			Name:  "replace",
 			Usage: "Maintain a single backup",
 		},
+		&cli.BoolFlag{
+			Name:  "delete",
+			Usage: "Delete the backup folder after upload",
+		},
 	},
 	Action: func(ctx context.Context, c *cli.Command) error {
 		s3client := ctx.Value("s3client").(*s3.Client)
@@ -47,6 +51,7 @@ var ScheduleCmd = &cli.Command{
 				c.String("bucket"),
 				c.String("kvrocks-dir"),
 				prefix,
+				c.Bool("delete"),
 			); err != nil {
 				log.Printf("could not backup: %s\n", err)
 			}
