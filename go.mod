@@ -32,6 +32,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.96.0
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
+	github.com/klauspost/compress v1.18.4
 	github.com/robfig/cron/v3 v3.0.1
 	go.uber.org/atomic v1.11.0 // indirect
 )

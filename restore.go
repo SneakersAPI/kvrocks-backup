@@ -3,12 +3,16 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
+	"os"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/feature/s3/transfermanager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/klauspost/compress/zstd"
 	"github.com/redis/go-redis/v9"
 	"github.com/urfave/cli/v3"
 )
@@ -35,23 +39,53 @@ var RestoreCmd = &cli.Command{
 			// return fmt.Errorf("cannot shutdown: %w", err)
 		}
 
-		log.Println("Downloading...")
+		paginator := s3.NewListObjectsV2Paginator(s3client, &s3.ListObjectsV2Input{
+			Bucket: new(c.String("bucket")),
+			Prefix: new(c.StringArg("backup-prefix")),
+		})
 		tm := transfermanager.New(s3client)
-		output, err := tm.DownloadDirectory(
-			ctx,
-			&transfermanager.DownloadDirectoryInput{
-				Bucket:      new(c.String("bucket")),
-				Destination: new(path.Join(c.String("kvrocks-dir"), "db")),
-				KeyPrefix:   new(c.StringArg("backup-prefix")),
-			},
-		)
-		if err != nil {
-			return fmt.Errorf("cannot download backup: %w", err)
+
+		for paginator.HasMorePages() {
+			page, err := paginator.NextPage(ctx)
+			if err != nil {
+				return fmt.Errorf("cannot crawl s3: %w", err)
+			}
+
+			for _, obj := range page.Contents {
+				dw, err := tm.GetObject(ctx, &transfermanager.GetObjectInput{
+					Bucket: new(c.String("bucket")),
+					Key:    obj.Key,
+				})
+				if err != nil {
+					return fmt.Errorf("cannot download: %w", err)
+				}
+
+				var reader io.Reader = dw.Body
+				fp := path.Base(*obj.Key)
+
+				if strings.HasSuffix(*obj.Key, ".zst") {
+					reader, err = zstd.NewReader(reader)
+					if err != nil {
+						return fmt.Errorf("cannot decode zstd: %w", err)
+					}
+
+					fp = fp[:len(fp)-4]
+				}
+
+				f, err := os.Create(path.Join(c.String("kvrocks-dir"), "db", fp))
+				if err != nil {
+					return fmt.Errorf("cannot create destination file: %w", err)
+				}
+
+				if _, err = io.Copy(f, reader); err != nil {
+					return fmt.Errorf("cannot copy: %w", err)
+				}
+
+				log.Println("Restored", fp)
+			}
 		}
 
 		log.Println("Restore finished in", time.Since(start).String())
-		log.Println("Downloaded files:", output.ObjectsDownloaded)
-		log.Println("Failed downloads:", output.ObjectsFailed)
 
 		return nil
 	},

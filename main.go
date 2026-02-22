@@ -16,7 +16,7 @@ func main() {
 	cmd := &cli.Command{
 		Name:    "kvrocks-backup",
 		Usage:   "A tool for saving and restoring Kvrocks instances",
-		Version: "v1.0.1",
+		Version: "v1.0.2",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "kvrocks-url",
@@ -63,7 +63,9 @@ func main() {
 				return ctx, fmt.Errorf("cannot configure aws: %w", err)
 			}
 
-			s3client := s3.NewFromConfig(cfg)
+			s3client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+				o.DisableLogOutputChecksumValidationSkipped = true
+			})
 			return context.WithValue(ctx, "s3client", s3client), nil
 		},
 	}

@@ -16,8 +16,9 @@ docker run --rm \
     ghcr.io/sneakersapi/kvrocks-backup --prefix "my-backups" backup
 ```
 
-Optional args:
+Optional flags:
 - `--delete`: delete the `backup` folder after upload. This requires `rw` permission on the volume.
+- `--compress`: use zstd to compress files before uploading.
 
 > [!TIP]
 > We recommend mounting the volume using `ro` flag on Docker. 
@@ -43,6 +44,7 @@ docker run --rm \
 Optional args:
 - `--delete`: delete the `backup` folder after upload. This requires `rw` permission on the volume.
 - `--replace`: always save into the same prefix, replacing the previous uploaded backup.
+- `--compress`: use zstd to compress files before uploading.
 
 ## Restore a backup
 
