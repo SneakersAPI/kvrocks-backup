@@ -45,6 +45,7 @@ Optional args:
 - `--delete`: delete the `backup` folder after upload. This requires `rw` permission on the volume.
 - `--replace`: always save into the same prefix, replacing the previous uploaded backup.
 - `--compress`: use zstd to compress files before uploading.
+- `--purge [days]`: purge older backups after defined days.
 
 ## Restore a backup
 
